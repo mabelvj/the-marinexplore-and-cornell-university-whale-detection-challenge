@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import aifc
 import os
-import tensorflow as tf
+#import tensorflow as tf
 import random
 import time
 
