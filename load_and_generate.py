@@ -70,7 +70,7 @@ def compute_specgram(data_loc,train_folder,file_name):
 	'''Retrieves time data from the aiff file and compute the spectogram for time_data'''  
 	if not os.path.isfile(data_loc + '/' + train_folder + '/specgrams/' + file_name.split('.')[0] + '.png'):
 		try:
-			plt.figure(figsize=(18.,15.), dpi=80)
+			plt.figure(figsize=(18.,16.), dpi=50) #900x800
 			f = aifc.open(os.path.join(data_loc,train_folder, file_name), 'r')
 			str_frames = f.readframes(f.getnframes())
 			#Fs = f.getframerate()
