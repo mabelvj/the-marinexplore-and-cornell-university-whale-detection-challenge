@@ -62,38 +62,34 @@ def compute_specgram(data_loc,train_folder,file_name):
 	
 	
 	
-def process_image(file_name, enlarge = False): 
-	'''Retrieves time data from the aiff file and compute the spectogram for time_data'''
-	'''enlarge: gives option to resize the image to 128x128 by interpolation'''
-	if file_name.endswith('.aiff'):
-		f = aifc.open(file_name, 'r')
-		str_frames = f.readframes(f.getnframes())
-		Fs = f.getframerate()
-		time_data = np.fromstring(str_frames, np.short).byteswap()
-		f.close()
-		Pxx, freqs, bins, im = plt.specgram(time_data,Fs=Fs,noverlap=90,cmap=plt.cm.gist_heat)
-		
-		from scipy.misc import imresize
-		from sklearn import preprocessing
-		
-		if enlarge:
+def process_image(file_name): 
+    '''Retrieves time data from the aiff file and compute the spectogram for time_data'''
+    
+    if file_name.endswith('.aiff'):
+        f = aifc.open(file_name, 'r')
+        str_frames = f.readframes(f.getnframes())
+        Fs = f.getframerate()
+        time_data = np.fromstring(str_frames, np.short).byteswap()
+        f.close()
+        Pxx, freqs, bins, im = plt.specgram(time_data,Fs=Fs,noverlap=90,cmap=plt.cm.gist_heat)
+
+        from scipy.misc import imresize
+        from sklearn import preprocessing
+		if enlarge :
 			Pxx_prep = imresize(np.log10(Pxx),(128,128), interp= 'lanczos').astype('float32')
-		else:
-			Pxx_prep = np.log(Pxx).astype('float32')
-		
-		Pxx_ = preprocessing.StandardScaler().fit_transform(Pxx_prep) #rescale by std
-		return Pxx_
-	else:
+        else:
+			Pxx_prep = np.log(Pxx).astype.('float32')
+        Pxx_ = preprocessing.StandardScaler().fit_transform(Pxx_prep) #rescale by std
+        return Pxx_
+    else:
 		print("Error in file: "+ file_name + "...\n")
 		pass
 		
 
 
 #image_size = 128  # Pixel width and height.
-image_width = 23
-image_height = 129
-def return_image_size(image_width = 129, image_height = 23):
-	return np.round(np.sqrt(image_width * image_height))
+def return_image_size(image_width = 29, image_height = 127):
+	return image_width * image_height
 
 pixel_depth = 255.0  # Number of levels per pixel.
 
@@ -103,7 +99,7 @@ def load_image(folder, min_num_images):
   from scipy import ndimage
   start_time_init = time.time()
   image_files = os.listdir(folder)
-  dataset = np.ndarray(shape=(len(image_files), image_height, image_width),
+  dataset = np.ndarray(shape=(len(image_files), image_size, image_size),
                          dtype=np.float32)
                          
   num_images = 0
@@ -117,7 +113,7 @@ def load_image(folder, min_num_images):
       if image_file.endswith('.aiff'):
           image_data =  np.array(process_image(image_file)) 
             #(ndimage.imread(image_file).astype(float) - pixel_depth / 2) / pixel_depth
-          if image_data.shape != (image_height, image_width):
+          if image_data.shape != (image_size, image_size):
             raise Exception('Unexpected image shape: %s' % str(image_data.shape))
           dataset[num_images, :, :] = image_data
           num_images = num_images + 1
