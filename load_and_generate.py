@@ -17,46 +17,12 @@ except:
 import os.path
 from os import listdir
 from os.path import isfile, join
-file_path = '../whale-inputs/data/' #change to test if desired
-file_names = [f for f in listdir(os.path.join(file_path, 'train')) if isfile(os.path.join(file_path, 'train', f))]
+#file_path = '../whale-inputs/data/' #change to test if desired
+#file_names = [f for f in listdir(os.path.join(file_path, 'train')) if isfile(os.path.join(file_path, 'train', f))]
 
-data_loc = '../whale-inputs/data' 
-train_folder = 'train'
-#train_folder = join(file_path, 'train')
-#test_folder = join(file_path, 'test')
+#data_loc = '../whale-inputs/data' 
+#train_folder = 'train'
 
-#def maybe_pickle(data_folders, min_num_images_per_class, force=False):
-  #dataset_names = []
-  #for folder in data_folders:
-    #set_filename = folder + '.pickle'
-    #dataset_names.append(set_filename)
-    #if os.path.exists(set_filename) and not force:
-      ## You may override by setting force=True.
-      #print('%s already present - Skipping pickling.' % set_filename)
-    #else:
-      #print('Pickling %s.' % set_filename)
-      #dataset = load_letter(folder, min_num_images_per_class)
-      #try:
-        #with open(set_filename, 'wb') as f:
-          #pickle.dump(dataset, f, pickle.HIGHEST_PROTOCOL)
-      #except Exception as e:
-        #print('Unable to save data to', set_filename, ':', e)
-  
-  #return dataset_names
-
-#train_datasets = maybe_pickle(train_folder, 100)
-#test_datasets = maybe_pickle(test_folders, 50)
-
-#def open_pickle(data_folders):
-  #folder = random.sample(data_folders, 1)
-  #pickle_filename = ''.join(folder) + '.pickle'
-  #try:
-    #with open(pickle_filename, 'rb') as f:
-      #dataset = pickle.load(f)
-  #except Exception as e:
-    #print('Unable to read data from', pickle_filename, ':', e)
-    #return
-    
 def get_time_data(data_loc,train_folder,file_name):
     ''' Retrieves time data from the aiff file'''
     f = aifc.open(os.path.join(data_loc,train_folder,file_name), 'r')
@@ -125,20 +91,22 @@ pixel_depth = 255.0  # Number of levels per pixel.
 def load_image(folder, min_num_images):
   """Load the data for a single letter label."""
   import time
+  from scipy import ndimage
   start_time_init = time.time()
   image_files = os.listdir(folder)
   dataset = np.ndarray(shape=(len(image_files), image_size, image_size),
                          dtype=np.float32)
+                         
   num_images = 0
   for i, image in enumerate(image_files):
     image_file = os.path.join(folder, image)
-    print "Image %d... \n"%i
-    print image_file
-    print '\n'
+    #print "Image %d... \n"%i
+    #print image_file
+    #print '\n'
     start_time = time.time()
     try:
       if image_file.endswith('.aiff'):
-          image_data = process_image(image_file) 
+          image_data =  np.array(process_image(image_file)) 
             #(ndimage.imread(image_file).astype(float) - pixel_depth / 2) / pixel_depth
           if image_data.shape != (image_size, image_size):
             raise Exception('Unexpected image shape: %s' % str(image_data.shape))
@@ -146,7 +114,7 @@ def load_image(folder, min_num_images):
           num_images = num_images + 1
     except IOError as e:
       print('Could not read:', image_file, ':', e, '- it\'s ok, skipping.')
-    print("--- %s seconds --- \n" % (time.time() - start_time))
+    #print("--- %s seconds --- \n" % (time.time() - start_time))
     
   dataset = dataset[0:num_images, :, :]
   if num_images < min_num_images:
@@ -176,7 +144,7 @@ def maybe_pickle(data_folders, min_num_images_per_class, force=False):
       # You may override by setting force=True.
       print('%s already present - Skipping pickling.' % set_filename)
     else:
-      print('Pickling %s.' % set_filename)
+      print('Pickling %s' % set_filename)
       dataset = load_image(folder, min_num_images_per_class)
       try:
         with open(set_filename, 'wb') as f:
@@ -189,7 +157,7 @@ def maybe_pickle(data_folders, min_num_images_per_class, force=False):
 
 def open_pickle(data_folders):
   folder = random.sample(data_folders, 1)
-  print folder
+  #print folder
   pickle_filename = ''.join(folder) + '.pickle'
   try:
     with open(pickle_filename, 'rb') as f:
@@ -200,7 +168,7 @@ def open_pickle(data_folders):
     pass
 
 
-train_datasets = maybe_pickle([train_folder+'/whales', train_folder+'/no_whales'], 500, force= True)
+#train_datasets = maybe_pickle([train_folder+'/whales', train_folder+'/no_whales'], 500, force= True)
 #test_datasets = maybe_pickle([test_folder], 50)#54503
 
 #number_of_samples= 100
@@ -233,6 +201,39 @@ def create_label_folders(data_folder, dataset_folder, file_name):
 				print data_folder + file_to_copy
 				shutil.copyfile(os.path.join(data_folder, dataset_folder,file_to_copy) , os.path.join(data_folder,dataset_folder, train_folder,file_to_copy) )
 	pass
+	
+num_classes = 2
+np.random.seed(133)
+
+#def maybe_extract(filename, force=False):
+def maybe_extract(filename, force=False):
+  "Returns the absolute path of the folders for each label"
+  root = os.path.splitext(os.path.splitext(filename)[0])[0]  # remove .tar.gz
+  data_folders = [
+    os.path.join(root, d) for d in sorted(os.listdir(root))
+    if os.path.isdir(os.path.join(root, d))]
+  if len(data_folders) != num_classes:
+    raise Exception(
+      'Expected %d folders, one per class. Found %d instead.' % (
+        num_classes, len(data_folders)))
+  print(data_folders)
+  return data_folders
+  
+  
+
+def randomize_linear(dataset, labels):
+	"Randomize a dataset that has been straighted out"	
+	permutation = np.random.permutation(labels.shape[0])
+	shuffled_dataset = dataset[permutation,:]
+	shuffled_labels = labels[permutation]
+	return shuffled_dataset, shuffled_labels
+  
+def randomize(dataset, labels):
+	"Randomize a dataset"
+	permutation = np.random.permutation(labels.shape[0])
+	shuffled_dataset = dataset[permutation,:, :]
+	shuffled_labels = labels[permutation]
+	return shuffled_dataset, shuffled_labels
 
     
     
