@@ -17,6 +17,13 @@ except:
 import os.path
 from os import listdir
 from os.path import isfile, join
+
+#image_size = 128  # Pixel width and height.
+#image_width = 23
+#image_height = 129
+#image_width = 128
+#image_height = 128
+
 #file_path = '../whale-inputs/data/' #change to test if desired
 #file_names = [f for f in listdir(os.path.join(file_path, 'train')) if isfile(os.path.join(file_path, 'train', f))]
 
@@ -62,7 +69,7 @@ def compute_specgram(data_loc,train_folder,file_name):
 	
 	
 	
-def process_image(file_name, enlarge = False): 
+def process_image(file_name, enlarge = True, image_height = 129, image_width = 23): 
 	'''Retrieves time data from the aiff file and compute the spectogram for time_data'''
 	'''enlarge: gives option to resize the image to 128x128 by interpolation'''
 	if file_name.endswith('.aiff'):
@@ -77,7 +84,7 @@ def process_image(file_name, enlarge = False):
 		from sklearn import preprocessing
 		
 		if enlarge:
-			Pxx_prep = imresize(np.log10(Pxx),(128,128), interp= 'lanczos').astype('float32')
+			Pxx_prep = imresize(np.log10(Pxx),(image_height,image_width), interp= 'lanczos').astype('float32')
 		else:
 			Pxx_prep = np.log(Pxx).astype('float32')
 		
@@ -89,15 +96,13 @@ def process_image(file_name, enlarge = False):
 		
 
 
-#image_size = 128  # Pixel width and height.
-image_width = 23
-image_height = 129
+
 def return_image_size(image_width = 129, image_height = 23):
 	return np.round(np.sqrt(image_width * image_height))
 
 pixel_depth = 255.0  # Number of levels per pixel.
 
-def load_image(folder, min_num_images):
+def load_image(folder, min_num_images, image_height = 129, image_width = 23 ):
   """Load the data for a single letter label."""
   import time
   from scipy import ndimage
@@ -115,7 +120,7 @@ def load_image(folder, min_num_images):
     start_time = time.time()
     try:
       if image_file.endswith('.aiff'):
-          image_data =  np.array(process_image(image_file)) 
+          image_data =  np.array(process_image(image_file, True, image_height, image_width)) 
             #(ndimage.imread(image_file).astype(float) - pixel_depth / 2) / pixel_depth
           if image_data.shape != (image_height, image_width):
             raise Exception('Unexpected image shape: %s' % str(image_data.shape))
@@ -144,7 +149,7 @@ data_loc = '../whale-inputs/data'
 train_folder = join(data_loc, 'train')
 test_folder = join(data_loc, 'test')
 
-def maybe_pickle(data_folders, min_num_images_per_class, force=False):
+def maybe_pickle(data_folders, min_num_images_per_class, force=False, image_height = 129, image_width = 23):
   dataset_names = []
   for folder in data_folders:
     set_filename = folder + '.pickle'
@@ -154,7 +159,7 @@ def maybe_pickle(data_folders, min_num_images_per_class, force=False):
       print('%s already present - Skipping pickling.' % set_filename)
     else:
       print('Pickling %s' % set_filename)
-      dataset = load_image(folder, min_num_images_per_class)
+      dataset = load_image(folder, min_num_images_per_class, image_height , image_width)
       try:
         with open(set_filename, 'wb') as f:
           pickle.dump(dataset, f, pickle.HIGHEST_PROTOCOL)
