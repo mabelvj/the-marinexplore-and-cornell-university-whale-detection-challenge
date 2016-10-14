@@ -5,10 +5,10 @@ from load_and_generate import *
 
 
 image_size = 128
-#image_width = 23
-#image_height = 129
-image_width = 128
-image_height = 128
+image_width = 23
+image_height = 129
+#image_width = 128
+#image_height = 128
 
 
 train_folders = maybe_extract(os.path.abspath( '../whale-inputs/data/train/'))

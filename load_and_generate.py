@@ -69,7 +69,7 @@ def compute_specgram(data_loc,train_folder,file_name):
 	
 	
 	
-def process_image(file_name, enlarge = True, image_height = 129, image_width = 23): 
+def process_image(file_name, enlarge = False, image_height = 129, image_width = 23): 
 	'''Retrieves time data from the aiff file and compute the spectogram for time_data'''
 	'''enlarge: gives option to resize the image to 128x128 by interpolation'''
 	if file_name.endswith('.aiff'):
@@ -88,7 +88,11 @@ def process_image(file_name, enlarge = True, image_height = 129, image_width = 2
 		else:
 			Pxx_prep = np.log(Pxx).astype('float32')
 		
-		Pxx_ = preprocessing.StandardScaler().fit_transform(Pxx_prep) #rescale by std
+		Pxx_prep = preprocessing.MinMaxScaler().fit_transform(Pxx_prep) #rescale to 0-1
+		#Pxx_prep = preprocessing.StandardScaler().fit_transform(Pxx_prep) #rescale by std
+		Pxx_ = (Pxx_prep*255.0).astype(int)
+		# Returning raw values to perform operations
+		#Pxx_ = Pxx
 		return Pxx_
 	else:
 		print("Error in file: "+ file_name + "...\n")
