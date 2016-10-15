@@ -11,6 +11,13 @@ image_height = 129
 #image_height = 128
 
 
+#Adjusting to freqs 250Hz
+image_height = 33
+image_width = 23
+
+image_height = 32
+image_width = 32
+
 train_folders = maybe_extract(os.path.abspath( '../whale-inputs/data/train/'))
 train_datasets = maybe_pickle(train_folders, 7000, True, image_height, image_width )
 

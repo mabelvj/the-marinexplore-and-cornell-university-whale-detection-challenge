@@ -69,7 +69,7 @@ def compute_specgram(data_loc,train_folder,file_name):
 	
 	
 	
-def process_image(file_name, enlarge = False, image_height = 129, image_width = 23): 
+def process_image(file_name, enlarge = True, image_height = 129, image_width = 23): 
 	'''Retrieves time data from the aiff file and compute the spectogram for time_data'''
 	'''enlarge: gives option to resize the image to 128x128 by interpolation'''
 	if file_name.endswith('.aiff'):
@@ -78,13 +78,15 @@ def process_image(file_name, enlarge = False, image_height = 129, image_width = 
 		Fs = f.getframerate()
 		time_data = np.fromstring(str_frames, np.short).byteswap()
 		f.close()
-		Pxx, freqs, bins, im = plt.specgram(time_data,Fs=Fs,noverlap=90,cmap=plt.cm.gist_heat)
-		
+		Pxx, freqs, bins, im = plt.specgram(time_data,NFFT=256,Fs=Fs,noverlap=90,cmap=plt.cm.gist_heat)
+		Pxx = Pxx[[freqs<250.]] # Right-whales call occur under 250Hz
+		#print Pxx.shape
 		from scipy.misc import imresize
 		from sklearn import preprocessing
 		
 		if enlarge:
-			Pxx_prep = imresize(np.log10(Pxx),(image_height,image_width), interp= 'lanczos').astype('float32')
+			#Pxx_prep = imresize(np.log10(Pxx),(image_height,image_width), interp= 'lanczos').astype('float32')
+			Pxx_prep = imresize(Pxx,(image_height,image_width), interp= 'lanczos').astype('float32')
 		else:
 			Pxx_prep = np.log(Pxx).astype('float32')
 		
@@ -92,6 +94,7 @@ def process_image(file_name, enlarge = False, image_height = 129, image_width = 
 		#Pxx_prep = preprocessing.StandardScaler().fit_transform(Pxx_prep) #rescale by std
 		Pxx_ = (Pxx_prep*255.0).astype(int)
 		# Returning raw values to perform operations
+		#Pxx_ = Pxx_prep
 		#Pxx_ = Pxx
 		return Pxx_
 	else:
