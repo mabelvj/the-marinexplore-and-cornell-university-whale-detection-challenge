@@ -66,7 +66,15 @@ def merge_datasets(pickle_files, train_size, valid_size=0):
     
   return valid_dataset, valid_labels, train_dataset, train_labels
             
-            
+
+# Extraction of whole dataset
+v_, v_, train_dataset, train_labels = merge_datasets(
+  train_datasets, train_datasets.shape[0], 0)
+  
+whale_dataset = np.copy(train_dataset)        
+whale_labels = np.copy(train_labels)  
+
+#Dataset mixing    
 train_size = np.int(2.*7027.)
 valid_size = 0 #np.floor(14000.*.3).astype(int)
 test_size = 3000
@@ -109,7 +117,7 @@ train_dataset, train_labels = randomize(train_dataset, train_labels)
 test_dataset, test_labels = randomize(test_dataset, test_labels)
 valid_dataset, valid_labels = randomize(valid_dataset, valid_labels)
 
-
+# test_generation
 pickle_file = 'exploration.pickle'
 
 try:
@@ -127,7 +135,26 @@ try:
 except Exception as e:
   print('Unable to save data to', pickle_file, ':', e)
   raise
+
+
   
   
 statinfo = os.stat(pickle_file)
 print('Compressed pickle size:', statinfo.st_size)  
+
+
+
+### RAW pickle
+
+raw_pickle_file = 'whale_data.pickle'
+try:
+  f = open(raw_pickle_file, 'wb')
+  save = {
+    'dataset': train_datasets,
+    'labels': train_labels,
+    }
+  pickle.dump(save, f, raw_pickle_file.HIGHEST_PROTOCOL)
+  f.close()
+except Exception as e:
+  print('Unable to save data to', raw_pickle_file, ':', e)
+  raise
