@@ -11,15 +11,16 @@ image_height = 129
 #image_height = 128
 
 
-#Adjusting to freqs 250Hz
+#Adjusting to freqs 250Hz : height 33
 image_height = 33
 image_width = 23
 
+#Rescale width
 image_height = 32
 image_width = 32
 
 train_folders = maybe_extract(os.path.abspath( '../whale-inputs/data/train/'))
-train_datasets = maybe_pickle(train_folders, 7000, True, image_height, image_width )
+train_datasets = maybe_pickle(train_folders, 7000, False, image_height, image_width )
 
 
 
@@ -69,7 +70,7 @@ def merge_datasets(pickle_files, train_size, valid_size=0):
 
 # Extraction of whole dataset
 v_, v_, train_dataset, train_labels = merge_datasets(
-  train_datasets, train_datasets.shape[0], 0)
+  train_datasets, 7027, 0)
   
 whale_dataset = np.copy(train_dataset)        
 whale_labels = np.copy(train_labels)  
@@ -141,20 +142,3 @@ except Exception as e:
   
 statinfo = os.stat(pickle_file)
 print('Compressed pickle size:', statinfo.st_size)  
-
-
-
-### RAW pickle
-
-raw_pickle_file = 'whale_data.pickle'
-try:
-  f = open(raw_pickle_file, 'wb')
-  save = {
-    'dataset': train_datasets,
-    'labels': train_labels,
-    }
-  pickle.dump(save, f, raw_pickle_file.HIGHEST_PROTOCOL)
-  f.close()
-except Exception as e:
-  print('Unable to save data to', raw_pickle_file, ':', e)
-  raise

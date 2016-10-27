@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import aifc
 import os
-#import tensorflow as tf
 import random
 import time
 import pandas as pd
@@ -18,17 +17,13 @@ import os.path
 from os import listdir
 from os.path import isfile, join
 
-#image_size = 128  # Pixel width and height.
-#image_width = 23
-#image_height = 129
-#image_width = 128
-#image_height = 128
 
-#file_path = '../whale-inputs/data/' #change to test if desired
-#file_names = [f for f in listdir(os.path.join(file_path, 'train')) if isfile(os.path.join(file_path, 'train', f))]
+data_loc = '../whale-inputs/data' 
+train_folder = join(data_loc, 'train')
+test_folder = join(data_loc, 'test')
 
-#data_loc = '../whale-inputs/data' 
-#train_folder = 'train'
+num_classes = 2
+np.random.seed(133)
 
 def get_time_data(data_loc,train_folder,file_name):
     ''' Retrieves time data from the aiff file'''
@@ -71,7 +66,7 @@ def compute_specgram(data_loc,train_folder,file_name):
 	
 def process_image(file_name, enlarge = True, image_height = 129, image_width = 23): 
 	'''Retrieves time data from the aiff file and compute the spectogram for time_data'''
-	'''enlarge: gives option to resize the image to 128x128 by interpolation'''
+	'''enlarge: gives option to resize the image to new dimensions WxH by interpolation'''
 	if file_name.endswith('.aiff'):
 		f = aifc.open(file_name, 'r')
 		str_frames = f.readframes(f.getnframes())
@@ -84,16 +79,16 @@ def process_image(file_name, enlarge = True, image_height = 129, image_width = 2
 		from scipy.misc import imresize
 		from sklearn import preprocessing
 		
-		if enlarge:
+		if enlarge: #change image size
 			#Pxx_prep = imresize(np.log10(Pxx),(image_height,image_width), interp= 'lanczos').astype('float32')
 			Pxx_prep = imresize(Pxx,(image_height,image_width), interp= 'lanczos').astype('float32')
-		else:
+		else: #image size not changed
 			Pxx_prep = np.log(Pxx).astype('float32')
 		
-		Pxx_prep = preprocessing.MinMaxScaler().fit_transform(Pxx_prep) #rescale to 0-1
-		#Pxx_prep = preprocessing.StandardScaler().fit_transform(Pxx_prep) #rescale by std
+		#Pxx_prep = preprocessing.MinMaxScaler().fit_transform(Pxx_prep) #rescale to 0-1
+		Pxx_prep = preprocessing.StandardScaler(copy=True, with_mean=True, with_std=True).fit_transform(Pxx_prep) #rescale by std
 		Pxx_ = (Pxx_prep*255.0).astype(int)
-		# Returning raw values to perform operations
+		# Returning raw values to perform operations. Used to obtain raw data for ipynb
 		#Pxx_ = Pxx_prep
 		#Pxx_ = Pxx
 		return Pxx_
@@ -147,14 +142,7 @@ def load_image(folder, min_num_images, image_height = 129, image_width = 23 ):
   print('Standard deviation:', np.std(dataset))
   return dataset
 
-try:
-   import cPickle as pickle
-except:
-   import pickle
 
-data_loc = '../whale-inputs/data' 
-train_folder = join(data_loc, 'train')
-test_folder = join(data_loc, 'test')
 
 def maybe_pickle(data_folders, min_num_images_per_class, force=False, image_height = 129, image_width = 23):
   dataset_names = []
@@ -223,10 +211,8 @@ def create_label_folders(data_folder, dataset_folder, file_name):
 				shutil.copyfile(os.path.join(data_folder, dataset_folder,file_to_copy) , os.path.join(data_folder,dataset_folder, train_folder,file_to_copy) )
 	pass
 	
-num_classes = 2
-np.random.seed(133)
 
-#def maybe_extract(filename, force=False):
+
 def maybe_extract(filename, force=False):
   "Returns the absolute path of the folders for each label"
   root = os.path.splitext(os.path.splitext(filename)[0])[0]  # remove .tar.gz
