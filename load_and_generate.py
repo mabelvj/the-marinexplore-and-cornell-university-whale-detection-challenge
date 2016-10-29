@@ -193,6 +193,8 @@ def create_label_folders(data_folder, dataset_folder, file_name):
 	df = pd.concat([ground_truth, pd.get_dummies(ground_truth.label)], axis=1); 
 	train_folders_names= ['whales', 'no_whales']
 	whales = df[df[1]==1].index.values
+	print whales
+	print ("!!!!")
 	no_whales = df[df[0]==1].index.values
 	for train_folder in train_folders_names:
 		if not os.path.isdir(os.path.join(data_folder, dataset_folder, train_folder )):
@@ -205,10 +207,11 @@ def create_label_folders(data_folder, dataset_folder, file_name):
 			files_names = no_whales
 		
 		for file_to_copy in files_names:
-			print file_to_copy
-			if os.path.isfile(os.path.join(data_folder, dataset_folder,file_to_copy)):
+			#print file_to_copy
+			#print (os.path.join(data_folder, dataset_folder,file_to_copy+'.aiff'))
+			if os.path.isfile(os.path.join(data_folder, dataset_folder,file_to_copy+'.aiff')):
 				print data_folder + file_to_copy
-				shutil.copyfile(os.path.join(data_folder, dataset_folder,file_to_copy) , os.path.join(data_folder,dataset_folder, train_folder,file_to_copy) )
+				shutil.copyfile(os.path.join(data_folder, dataset_folder,file_to_copy+'.aiff') , os.path.join(data_folder,dataset_folder,train_folder,file_to_copy+'.aiff') )
 	pass
 	
 
